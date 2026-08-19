@@ -1,0 +1,20 @@
+HIST 1301 — Unit 1 Timeline Drop-In Update
+
+This ZIP contains only the files needed for the new timeline resource.
+
+UPLOAD TO THE ROOT OF THE CURRENT GITHUB REPOSITORY:
+
+1. index.html
+   - Replaces the current index.html.
+   - The only intended content addition is the Unit 1 Timeline resource card/link.
+
+2. timeline.html
+   - New file at the repository root.
+
+3. css/timeline.css
+   - New file inside the existing css folder.
+
+DO NOT DELETE OR REPLACE THE REST OF THE SITE.
+The existing section pages, question data, progress tracking, Test Mode, and JavaScript files are not part of this update and should remain as they are.
+
+After upload, open the main Unit 1 page and click “Open Timeline →”.
