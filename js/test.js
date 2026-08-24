@@ -4,6 +4,7 @@
   const TEST_SIZE = 20;
   const PER_CHAPTER = 5;
   const tracker = window.HistProgress || null;
+  const remote = window.RemoteTracker || null;
   const sections = Object.values(window.UNIT1_SECTIONS || {}).sort((a, b) => a.id.localeCompare(b.id));
   const start = document.getElementById("testStart");
   const activity = document.getElementById("testActivity");
@@ -199,14 +200,20 @@
 
   function begin() {
     const questions = buildSmartTest();
+    const attemptNumber = tracker ? (tracker.getUnitData().testAttempts.length + 1) : 1;
+    const activityId = `unit1-test-${remote ? remote.sessionId() : Date.now()}-${Date.now()}`;
     state = {
       questions,
       index: 0,
       answers: Array(questions.length).fill(null),
       seenKeys: new Set(),
       submitted: false,
-      notice: ""
+      notice: "",
+      activityId,
+      attemptNumber,
+      startedAt: Date.now()
     };
+    if (remote) remote.track({ mode: "test", event_type: "test_started", activity_id: activityId, details: { attempt: attemptNumber, selected_question_ids: questions.map(q => q.trackingKey) } });
     start.classList.add("hidden");
     activity.classList.remove("hidden");
     render();
@@ -290,6 +297,7 @@
       stats[q.section].total++;
       if (correct) stats[q.section].correct++;
       if (tracker) tracker.recordAnswer(q.section, q.id, correct);
+      if (remote) remote.track({ section: q.section, mode: "test", event_type: "test_question_scored", activity_id: state.activityId, question_id: q.id, result: correct ? "correct" : "incorrect", details: { attempt: state.attemptNumber, selected_choice: state.answers[index], correct_choice: q.answer } });
     });
 
     const totalCorrect = Object.values(stats).reduce((sum, section) => sum + section.correct, 0);
@@ -305,6 +313,8 @@
         sectionResults: stats
       });
     }
+
+    if (remote) remote.track({ mode: "test", event_type: "test_completed", activity_id: state.activityId, score_earned: totalCorrect, score_possible: state.questions.length, percent: pct, duration_seconds: Math.round((Date.now() - state.startedAt) / 1000), details: { attempt: state.attemptNumber, selected_question_ids: state.questions.map(q => q.trackingKey), section_results: stats } });
 
     progress.textContent = "Complete";
     card.innerHTML = `
@@ -361,6 +371,7 @@
   window.Unit1TestSelection = { buildSmartTest, candidateScore };
 
   document.getElementById("startTest").onclick = begin;
+  if (remote) remote.track({ mode: "test", event_type: "test_mode_opened" });
   document.getElementById("exitTest").onclick = () => {
     if (confirm("Exit this test? Your current answers will be cleared.")) location.href = "index.html";
   };

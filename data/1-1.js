@@ -32,7 +32,8 @@ window.SECTION_DATA = {
         "Agriculture developed roughly c. 7500–5000 BCE",
         "Major crops included maize, beans, squash, peppers, avocados, and pumpkins",
         "Permanent villages became more practical",
-        "Important technologies included the atlatl, canoes, and pottery"
+        "The atlatl was a spear-thrower that increased a spear's force and distance",
+        "Other important technologies included canoes and pottery"
       ],
       cfu: ["q05", "q06"]
     },

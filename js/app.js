@@ -5,6 +5,7 @@
   if (!data) return;
 
   const tracker = window.HistProgress || null;
+  const remote = window.RemoteTracker || null;
   const sectionHome = document.getElementById("sectionHome");
   const activity = document.getElementById("activity");
   const activityCard = document.getElementById("activityCard");
@@ -16,6 +17,8 @@
   let mode = null;
   let state = {};
 
+  if (remote) remote.track({ section: data.id, mode: "navigation", event_type: "section_opened" });
+
   document.querySelectorAll("[data-mode]").forEach(btn => {
     btn.addEventListener("click", () => startMode(btn.dataset.mode));
   });
@@ -26,23 +29,27 @@
     sectionHome.classList.add("hidden");
     activity.classList.remove("hidden");
 
+    const activityId = `${data.id}-${nextMode}-${remote ? remote.sessionId() : Date.now()}-${Date.now()}`;
+    const startedAt = Date.now();
+    if (remote) remote.track({ section: data.id, mode: nextMode, event_type: `${nextMode === "mc" ? "multiple_choice" : nextMode}_opened`, activity_id: activityId });
     if (mode === "learn") {
-      state = { index: 0, cfuIndex: 0, selected: null, checked: false, seenKeys: new Set() };
+      state = { index: 0, cfuIndex: 0, selected: null, checked: false, seenKeys: new Set(), activityId, startedAt };
       renderLearn();
     } else if (mode === "practice") {
       const queue = shuffle(data.practice.map((p, i) => ({ ...p, original: i })));
-      state = { queue, current: 0, reveal: false, firstPass: queue.length, needsAgain: 0 };
+      state = { queue, current: 0, reveal: false, firstPass: queue.length, needsAgain: 0, got: 0, activityId, startedAt };
       renderPractice();
     } else if (mode === "mc") {
       const pool = shuffle(data.questions)
         .slice(0, Math.min(10, data.questions.length))
         .map(shuffleQuestion);
-      state = { questions: pool, index: 0, score: 0, selected: null, checked: false, seenKeys: new Set() };
+      state = { questions: pool, index: 0, score: 0, selected: null, checked: false, seenKeys: new Set(), activityId, startedAt };
       renderMC();
     }
   }
 
   function exitActivity() {
+    if (remote && mode) remote.track({ section: data.id, mode, event_type: "activity_exited", activity_id: state.activityId || "", duration_seconds: elapsed() });
     activity.classList.add("hidden");
     sectionHome.classList.remove("hidden");
     activityCard.innerHTML = "";
@@ -92,6 +99,7 @@
         const correct = state.selected === q.answer;
         state.checked = true;
         if (tracker) tracker.recordAnswer(data.id, q.id, correct);
+        if (remote) remote.track({ section: data.id, mode: "learn", event_type: "learn_check_answered", activity_id: state.activityId, question_id: q.id, result: correct ? "correct" : "incorrect", details: { selected_choice: state.selected, correct_choice: q.answer } });
         renderLearn();
         return;
       }
@@ -126,6 +134,10 @@
   }
 
   function renderLearnComplete() {
+    if (remote && !state.completionLogged) {
+      state.completionLogged = true;
+      remote.track({ section: data.id, mode: "learn", event_type: "learn_completed", activity_id: state.activityId, duration_seconds: elapsed() });
+    }
     activityProgress.textContent = `${data.learnScreens.length} of ${data.learnScreens.length}`;
     activityCard.innerHTML = `
       <div class="result-hero">
@@ -172,11 +184,14 @@
       };
     } else {
       document.getElementById("gotBtn").onclick = () => {
+        state.got++;
+        if (remote) remote.track({ section: data.id, mode: "practice", event_type: "practice_response", activity_id: state.activityId, question_id: `practice-${p.original + 1}`, result: "got_it", details: { first_pass: state.current < state.firstPass } });
         state.current++;
         state.reveal = false;
         renderPractice();
       };
       document.getElementById("againBtn").onclick = () => {
+        if (remote) remote.track({ section: data.id, mode: "practice", event_type: "practice_response", activity_id: state.activityId, question_id: `practice-${p.original + 1}`, result: "needs_practice", details: { first_pass: state.current < state.firstPass } });
         state.queue.push({ ...p });
         state.needsAgain++;
         state.current++;
@@ -187,6 +202,10 @@
   }
 
   function renderPracticeComplete() {
+    if (remote && !state.completionLogged) {
+      state.completionLogged = true;
+      remote.track({ section: data.id, mode: "practice", event_type: "practice_completed", activity_id: state.activityId, score_earned: state.got, score_possible: state.firstPass + state.needsAgain, percent: Math.round((state.got / Math.max(1, state.firstPass + state.needsAgain)) * 100), duration_seconds: elapsed(), details: { extra_reviews: state.needsAgain } });
+    }
     activityProgress.textContent = "Complete";
     activityCard.innerHTML = `
       <div class="result-hero">
@@ -283,6 +302,7 @@
           state.checked = true;
           if (correct) state.score++;
           if (tracker) tracker.recordAnswer(data.id, q.id, correct);
+          if (remote) remote.track({ section: data.id, mode: "multiple_choice", event_type: "question_answered", activity_id: state.activityId, question_id: q.id, result: correct ? "correct" : "incorrect", details: { selected_choice: state.selected, correct_choice: q.answer } });
           renderMC();
         };
       }
@@ -300,6 +320,10 @@
   function renderMCResults() {
     const total = state.questions.length;
     const pct = Math.round((state.score / total) * 100);
+    if (remote && !state.completionLogged) {
+      state.completionLogged = true;
+      remote.track({ section: data.id, mode: "multiple_choice", event_type: "multiple_choice_completed", activity_id: state.activityId, score_earned: state.score, score_possible: total, percent: pct, duration_seconds: elapsed(), details: { attempt_type: "section_mc" } });
+    }
     activityProgress.textContent = "Complete";
     activityCard.innerHTML = `
       <div class="result-hero">
@@ -335,6 +359,10 @@
   function resetSelection() {
     state.selected = null;
     state.checked = false;
+  }
+
+  function elapsed() {
+    return state.startedAt ? Math.max(0, Math.round((Date.now() - state.startedAt) / 1000)) : "";
   }
 
   function shuffle(arr) {

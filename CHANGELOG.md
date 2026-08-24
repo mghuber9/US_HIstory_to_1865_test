@@ -1,10 +1,20 @@
 # Unit 1 Upgrade Changelog — August 2026
 
+## V3 — Learn coverage and remote reporting (August 20)
+
+- Audited all 266 Unit 1 questions against corresponding Learn content.
+- Defined the atlatl explicitly and clarified Renaissance chronology.
+- Replaced ambiguous/inaccurate chronology items in 3.1 and 3.2 with fair, taught sequences.
+- Added centralized asynchronous Google Sheets reporting without changing local progress behavior.
+- Added a persistent offline queue, retry, unique IDs, and server-side Event/Score deduplication.
+- Added reporting for sessions, navigation, Learn checks, Practice, multiple choice, Test Mode, and Timeline.
+- Added the revised Apps Script, Dashboard formulas, deployment instructions, and verification steps.
+
 ## Summary
 
 This update preserves the existing static GitHub Pages architecture and historical content while adding a one-button Learn Check workflow, a 20-question Unit 1 Test Mode, browser-local performance tracking, smart test rotation, and a modest student-facing progress panel.
 
-No server, account, database, login, external service, framework, or build step was added.
+V2 added no server, account, database, login, external service, framework, or build step. V3 adds optional Google Sheets reporting; the static site and local progress remain fully functional without it.
 
 ## Files modified
 

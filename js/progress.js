@@ -182,3 +182,10 @@
     resetUnit
   };
 })();
+
+// Load the independent reporting layer synchronously before the page's activity
+// controller. Local progress above never depends on remote reporting.
+if (!window.RemoteTracker) {
+  const remotePath = /\/sections\//.test(location.pathname) ? "../js/remote-tracker.js" : "js/remote-tracker.js";
+  document.write(`<script src="${remotePath}"><\/script>`);
+}
