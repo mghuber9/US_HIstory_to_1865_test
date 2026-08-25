@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-
+  return;
   const ENDPOINT = "https://script.google.com/macros/s/AKfycbx1diJO1rhei_BjKpWVMiO90_pgMMeNS7qEi6OrMN_rwjxaMhaWjqbeimaDQjK7lpXa/exec";
   const STUDENT_ID = "S1";
   const SITE_VERSION = "unit1-v4-2026-08-25";
