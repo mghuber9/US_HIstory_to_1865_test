@@ -1,13 +1,9 @@
 (() => {
   "use strict";
 
-const TRACKING_ENABLED = false;
-if (!TRACKING_ENABLED) return;
-  
-
   const ENDPOINT = "https://script.google.com/macros/s/AKfycbx1diJO1rhei_BjKpWVMiO90_pgMMeNS7qEi6OrMN_rwjxaMhaWjqbeimaDQjK7lpXa/exec";
   const STUDENT_ID = "S1";
-  const SITE_VERSION = "unit1-v3-2026-08-20";
+  const SITE_VERSION = "unit1-v4-2026-08-25";
   const UNIT = "Unit 1";
   const QUEUE_KEY = "hist1301.remoteQueue.v1";
   const SESSION_KEY = "hist1301.remoteSession.v1";

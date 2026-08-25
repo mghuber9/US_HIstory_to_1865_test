@@ -1,5 +1,14 @@
 # Unit 1 Upgrade Changelog — August 2026
 
+## V4 — Cumulative Practice Test range (August 25)
+
+- Added a **Test through** dropdown with choices from 1.1 through 4.2.
+- Each choice includes every section from 1.1 through the selected section.
+- The 20 questions are divided as evenly as possible across included sections; extra slots are assigned randomly.
+- Existing unseen/weak/review weighting, recent-question penalties, local progress tracking, and remote reporting remain active within every section allocation.
+- Local test attempts and remote test start/completion events record the selected range.
+- Updated the reporting site version to `unit1-v4-2026-08-25`.
+
 ## V3 — Learn coverage and remote reporting (August 20)
 
 - Audited all 266 Unit 1 questions against corresponding Learn content.

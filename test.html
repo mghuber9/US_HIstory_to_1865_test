@@ -21,8 +21,22 @@
   <main class="shell test-shell">
     <section id="testStart" class="activity-card test-intro">
       <p class="eyebrow">PRACTICE TEST</p>
-      <h1>Ready for all eight sections?</h1>
-      <p>This 20-question test gives no answer feedback until the end. It targets about five questions from each chapter, rotates in new and previously missed material, and still includes older questions for review.</p>
+      <h1>Choose how far you want to test.</h1>
+      <p>This cumulative 20-question test gives no answer feedback until the end. Questions are divided as evenly as possible across every section through the one you select, while still prioritizing new and previously missed material.</p>
+      <div class="test-range-control">
+        <label for="testThrough"><strong>Test through</strong></label>
+        <select id="testThrough">
+          <option value="1.1">1.1 Indigenous Cultures</option>
+          <option value="1.2">1.2 Renaissance Europe</option>
+          <option value="2.1">2.1 English Exploration</option>
+          <option value="2.2">2.2 The 13 Colonies</option>
+          <option value="3.1">3.1 Colonial Ways of Life</option>
+          <option value="3.2">3.2 Colonial Society</option>
+          <option value="4.1">4.1 Colonial Conflicts</option>
+          <option value="4.2" selected>4.2 The Road to Revolution (All Unit 1)</option>
+        </select>
+        <p id="testRangeSummary" class="muted-text">20 questions covering all eight Unit 1 sections.</p>
+      </div>
       <button class="primary" id="startTest">Start 20 Questions</button>
     </section>
 

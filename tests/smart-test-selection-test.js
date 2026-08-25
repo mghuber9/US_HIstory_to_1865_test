@@ -15,7 +15,20 @@ for (let run = 0; run < 100; run++) {
   const test = context.window.Unit1TestSelection.buildSmartTest();
   if (test.length !== 20) throw new Error(`Run ${run}: expected 20 questions`);
   if (new Set(test.map(q => q.trackingKey)).size !== 20) throw new Error(`Run ${run}: duplicate question`);
-  const chapters = test.reduce((counts, q) => { const chapter = q.section.split(".")[0]; counts[chapter] = (counts[chapter] || 0) + 1; return counts; }, {});
-  if (["1","2","3","4"].some(chapter => chapters[chapter] !== 5)) throw new Error(`Run ${run}: chapter balance failed`);
+  const sectionCounts = Object.values(test.reduce((counts, q) => { counts[q.section] = (counts[q.section] || 0) + 1; return counts; }, {}));
+  if (sectionCounts.length !== 8 || Math.max(...sectionCounts) - Math.min(...sectionCounts) > 1) throw new Error(`Run ${run}: section balance failed`);
 }
-console.log(JSON.stringify({ smartSelections: 100, questionsPerTest: 20, questionsPerChapter: 5, duplicates: 0 }));
+
+const ranges = ["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"];
+ranges.forEach((through, rangeIndex) => {
+  for (let run = 0; run < 50; run++) {
+    const test = context.window.Unit1TestSelection.buildSmartTest(through);
+    if (test.length !== 20) throw new Error(`${through} run ${run}: expected 20 questions`);
+    if (new Set(test.map(q => q.trackingKey)).size !== 20) throw new Error(`${through} run ${run}: duplicate question`);
+    if (test.some(q => Number(q.section.replace(".", "")) > Number(through.replace(".", "")))) throw new Error(`${through} run ${run}: included a later section`);
+    const includedCount = rangeIndex + 1;
+    const counts = Object.values(test.reduce((result, q) => { result[q.section] = (result[q.section] || 0) + 1; return result; }, {}));
+    if (Math.max(...counts) - Math.min(...counts) > 1 || counts.length !== includedCount) throw new Error(`${through} run ${run}: section balance failed`);
+  }
+});
+console.log(JSON.stringify({ defaultSmartSelections: 100, cumulativeRangeSelections: 400, questionsPerTest: 20, duplicates: 0 }));

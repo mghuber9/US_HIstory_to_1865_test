@@ -2,7 +2,6 @@
   "use strict";
 
   const TEST_SIZE = 20;
-  const PER_CHAPTER = 5;
   const tracker = window.HistProgress || null;
   const remote = window.RemoteTracker || null;
   const sections = Object.values(window.UNIT1_SECTIONS || {}).sort((a, b) => a.id.localeCompare(b.id));
@@ -10,6 +9,8 @@
   const activity = document.getElementById("testActivity");
   const card = document.getElementById("testCard");
   const progress = document.getElementById("testProgress");
+  const testThrough = document.getElementById("testThrough");
+  const rangeSummary = document.getElementById("testRangeSummary");
   let state = {};
 
   function shuffle(array) {
@@ -34,7 +35,7 @@
     };
   }
 
-  function buildSmartTest() {
+  function buildSmartTest(maxSectionId = "4.2") {
     const unitData = tracker ? tracker.getUnitData() : { questions: {}, testAttempts: [] };
     const recentKeys = new Set(
       (unitData.testAttempts || [])
@@ -42,17 +43,17 @@
         .flatMap(attempt => attempt.questionKeys || [])
     );
     const now = Date.now();
-    const chapterGroups = groupSectionsByChapter(sections);
+    const includedSections = sections.filter(section => section.id.localeCompare(maxSectionId, undefined, { numeric: true }) <= 0);
+    const quotas = buildSectionQuotas(includedSections, TEST_SIZE);
     const picked = [];
 
-    ["1", "2", "3", "4"].forEach(chapter => {
-      const chapterSections = chapterGroups[chapter] || [];
-      picked.push(...selectChapterQuestions(chapterSections, PER_CHAPTER, unitData.questions || {}, recentKeys, now));
+    includedSections.forEach(section => {
+      picked.push(...selectSectionQuestions(section, quotas[section.id] || 0, unitData.questions || {}, recentKeys, now));
     });
 
     if (picked.length < TEST_SIZE) {
       const pickedKeys = new Set(picked.map(item => `${item.section.id}:${item.question.id}`));
-      const remaining = sections.flatMap(section => section.questions
+      const remaining = includedSections.flatMap(section => section.questions
         .filter(question => !pickedKeys.has(`${section.id}:${question.id}`))
         .map(question => ({ section, question })));
       remaining.sort((a, b) => candidateScore(b, unitData.questions || {}, recentKeys, now) - candidateScore(a, unitData.questions || {}, recentKeys, now));
@@ -60,6 +61,30 @@
     }
 
     return shuffle(picked.slice(0, TEST_SIZE).map(item => prepareQuestion(item.question, item.section)));
+  }
+
+  function buildSectionQuotas(includedSections, total) {
+    if (!includedSections.length) return {};
+    const base = Math.floor(total / includedSections.length);
+    const remainder = total % includedSections.length;
+    const extras = new Set(shuffle(includedSections).slice(0, remainder).map(section => section.id));
+    return Object.fromEntries(includedSections.map(section => [section.id, base + (extras.has(section.id) ? 1 : 0)]));
+  }
+
+  function selectSectionQuestions(section, count, history, recentKeys, now) {
+    const candidates = section.questions.map(question => ({ section, question }));
+    const chosen = [];
+    const chosenKeys = new Set();
+
+    while (chosen.length < count) {
+      const available = candidates.filter(item => !chosenKeys.has(`${item.section.id}:${item.question.id}`));
+      if (!available.length) break;
+      const best = chooseCandidate(available, history, recentKeys, now, () => 0);
+      if (!best) break;
+      chosen.push(best);
+      chosenKeys.add(`${best.section.id}:${best.question.id}`);
+    }
+    return chosen;
   }
 
   function groupSectionsByChapter(allSections) {
@@ -199,7 +224,8 @@
   }
 
   function begin() {
-    const questions = buildSmartTest();
+    const selectedThrough = testThrough ? testThrough.value : "4.2";
+    const questions = buildSmartTest(selectedThrough);
     const attemptNumber = tracker ? (tracker.getUnitData().testAttempts.length + 1) : 1;
     const activityId = `unit1-test-${remote ? remote.sessionId() : Date.now()}-${Date.now()}`;
     state = {
@@ -211,9 +237,10 @@
       notice: "",
       activityId,
       attemptNumber,
+      selectedThrough,
       startedAt: Date.now()
     };
-    if (remote) remote.track({ mode: "test", event_type: "test_started", activity_id: activityId, details: { attempt: attemptNumber, selected_question_ids: questions.map(q => q.trackingKey) } });
+    if (remote) remote.track({ mode: "test", event_type: "test_started", activity_id: activityId, section: selectedThrough, details: { attempt: attemptNumber, test_through: selectedThrough, selected_question_ids: questions.map(q => q.trackingKey) } });
     start.classList.add("hidden");
     activity.classList.remove("hidden");
     render();
@@ -309,12 +336,13 @@
         score: totalCorrect,
         total: state.questions.length,
         percentage: pct,
+        testThrough: state.selectedThrough,
         questionKeys: state.questions.map(q => q.trackingKey),
         sectionResults: stats
       });
     }
 
-    if (remote) remote.track({ mode: "test", event_type: "test_completed", activity_id: state.activityId, score_earned: totalCorrect, score_possible: state.questions.length, percent: pct, duration_seconds: Math.round((Date.now() - state.startedAt) / 1000), details: { attempt: state.attemptNumber, selected_question_ids: state.questions.map(q => q.trackingKey), section_results: stats } });
+    if (remote) remote.track({ mode: "test", event_type: "test_completed", activity_id: state.activityId, section: state.selectedThrough, score_earned: totalCorrect, score_possible: state.questions.length, percent: pct, duration_seconds: Math.round((Date.now() - state.startedAt) / 1000), details: { attempt: state.attemptNumber, test_through: state.selectedThrough, selected_question_ids: state.questions.map(q => q.trackingKey), section_results: stats } });
 
     progress.textContent = "Complete";
     card.innerHTML = `
@@ -368,9 +396,20 @@
     }[char]));
   }
 
-  window.Unit1TestSelection = { buildSmartTest, candidateScore };
+  function updateRangeSummary() {
+    if (!testThrough || !rangeSummary) return;
+    const included = sections.filter(section => section.id.localeCompare(testThrough.value, undefined, { numeric: true }) <= 0);
+    const label = included.length === 1 ? "section" : "sections";
+    rangeSummary.textContent = `20 questions divided across ${included.length} ${label}, 1.1 through ${testThrough.value}.`;
+  }
+
+  window.Unit1TestSelection = { buildSmartTest, buildSectionQuotas, candidateScore };
 
   document.getElementById("startTest").onclick = begin;
+  if (testThrough) {
+    testThrough.onchange = updateRangeSummary;
+    updateRangeSummary();
+  }
   if (remote) remote.track({ mode: "test", event_type: "test_mode_opened" });
   document.getElementById("exitTest").onclick = () => {
     if (confirm("Exit this test? Your current answers will be cleared.")) location.href = "index.html";
