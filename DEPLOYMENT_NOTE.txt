@@ -1,0 +1,13 @@
+DEPLOYMENT
+
+Replace the contents of the current GitHub Pages repository with the contents of this finished folder/ZIP, preserving the folder structure. Upload all root files and the archive, css, data, js, sections, and tests folders.
+
+Important new files include:
+- data/course-data.js
+- js/course-dashboard.js
+- js/timeline-extension.js
+- the Unit 2–4 HTML files in sections/
+
+The existing Google Apps Script endpoint and Google Sheet schema remain compatible. You do NOT need to redeploy the Apps Script and you do NOT need to modify or replace the Google Sheet.
+
+After GitHub Pages finishes publishing, open index.html, choose one section from each unit, and start one Practice Test as a quick deployment check.
