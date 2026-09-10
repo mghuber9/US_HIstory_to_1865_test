@@ -98,7 +98,7 @@
       if (q && !state.checked) {
         const correct = state.selected === q.answer;
         state.checked = true;
-        if (tracker) tracker.recordAnswer(data.id, q.id, correct);
+        if (tracker) tracker.recordAnswer(data.id, q.id, correct, `unit${data.unit || 1}`);
         if (remote) remote.track({ section: data.id, mode: "learn", event_type: "learn_check_answered", activity_id: state.activityId, question_id: q.id, result: correct ? "correct" : "incorrect", details: { selected_choice: state.selected, correct_choice: q.answer } });
         renderLearn();
         return;
@@ -301,7 +301,7 @@
           const correct = state.selected === q.answer;
           state.checked = true;
           if (correct) state.score++;
-          if (tracker) tracker.recordAnswer(data.id, q.id, correct);
+          if (tracker) tracker.recordAnswer(data.id, q.id, correct, `unit${data.unit || 1}`);
           if (remote) remote.track({ section: data.id, mode: "multiple_choice", event_type: "question_answered", activity_id: state.activityId, question_id: q.id, result: correct ? "correct" : "incorrect", details: { selected_choice: state.selected, correct_choice: q.answer } });
           renderMC();
         };
@@ -353,7 +353,7 @@
     const key = tracker.questionKey(data.id, q.id);
     if (state.seenKeys.has(key)) return;
     state.seenKeys.add(key);
-    tracker.recordSeen(data.id, q.id);
+    tracker.recordSeen(data.id, q.id, `unit${data.unit || 1}`);
   }
 
   function resetSelection() {

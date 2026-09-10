@@ -1,10 +1,9 @@
 (() => {
   "use strict";
-  return;
+
   const ENDPOINT = "https://script.google.com/macros/s/AKfycbx1diJO1rhei_BjKpWVMiO90_pgMMeNS7qEi6OrMN_rwjxaMhaWjqbeimaDQjK7lpXa/exec";
   const STUDENT_ID = "S1";
-  const SITE_VERSION = "unit1-v4-2026-08-25";
-  const UNIT = "Unit 1";
+  const SITE_VERSION = "full-course-v5-2026-09-09";
   const QUEUE_KEY = "hist1301.remoteQueue.v1";
   const SESSION_KEY = "hist1301.remoteSession.v1";
   const SESSION_STARTED_KEY = "hist1301.remoteSessionStarted.v1";
@@ -52,7 +51,7 @@
       student_id: STUDENT_ID,
       session_id: sessionId(),
       site_version: SITE_VERSION,
-      unit: UNIT,
+      unit: fields.unit || `Unit ${window.SECTION_DATA?.unit || document.body?.dataset?.unit || 1}`,
       section: fields.section || "",
       page: fields.page || pageName(),
       mode: fields.mode || "",

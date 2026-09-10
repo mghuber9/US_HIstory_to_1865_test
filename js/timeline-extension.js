@@ -1,0 +1,16 @@
+(()=>{const host=document.querySelector('main')||document.body;const events=[
+['1775–1776','Rebellion becomes independence','Lexington and Concord, the Continental Army, Common Sense, and the Declaration turn resistance into revolution.','Unit 2 · 5.1'],
+['1777–1783','Saratoga to peace','Saratoga brings the French alliance; Yorktown ends major fighting; the Treaty of Paris recognizes independence.','Unit 2 · 5.2'],
+['1781–1791','A new framework','Weaknesses of the Articles, Shays’ Rebellion, the Constitution, ratification, and the Bill of Rights reshape government.','Unit 2 · 6.1'],
+['1789–1800','Federalist Era','Washington establishes precedents; Hamilton’s program, foreign crises, parties, and the Alien and Sedition Acts test the new system.','Unit 2 · 6.2'],
+['1800–1815','Early Republic and War of 1812','Jeffersonian change, Louisiana expansion, maritime conflict, Native resistance, and renewed war with Britain transform the nation.','Unit 2 · 7.1–7.2'],
+['1815–1840','Market Revolution','Canals, steamboats, railroads, factories, cotton, migration, and regional specialization integrate the economy.','Unit 2 · 8'],
+['1816–1824','Era of Good Feelings','Nationalism coexists with the Panic of 1819, sectional conflict, the Missouri Compromise, and the Monroe Doctrine.','Unit 3 · 9'],
+['1828–1840','Jacksonian Era','Expanded white male politics, Indian removal, nullification, the Bank War, and depression redefine democracy and executive power.','Unit 3 · 10'],
+['1800–1860','Slavery and southern society','Cotton expansion, the domestic slave trade, planter power, Black family and religion, resistance, and revolt shape the South.','Unit 3 · 11'],
+['1820s–1850s','Religion and reform','Revivalism, romanticism, transcendentalism, abolition, temperance, schools, asylums, and women’s rights reshape public life.','Unit 3 · 12'],
+['1836–1848','Continental expansion','Texas independence, migration trails, Manifest Destiny, the Mexican-American War, and the Mexican Cession enlarge the nation.','Unit 4 · 13'],
+['1850–1860','The gathering storm','The Compromise of 1850, Kansas-Nebraska, Bleeding Kansas, Dred Scott, John Brown, and Lincoln’s election destroy compromise.','Unit 4 · 14'],
+['1861–1863','Union war becomes a war for freedom','Fort Sumter, Bull Run, Shiloh, Antietam, and emancipation expand the war’s scale and purpose.','Unit 4 · 15.1'],
+['1863–1865','Confederacy falters','Gettysburg and Vicksburg turn the war; Grant and Sherman apply relentless pressure; Appomattox and the Thirteenth Amendment close the course.','Unit 4 · 15.2']];
+const section=document.createElement('section');section.className='timeline-shell timeline-section';section.id='units-2-4';section.innerHTML=`<header class="timeline-section-header"><p class="section-kicker">Units 2–4</p><h2>Revolution through the Civil War</h2><p>A compact course-spanning chronology. Use the section labels to connect each event cluster to its full Learn material.</p></header><div class="course-timeline-list">${events.map(e=>`<article class="test-review-item"><p class="eyebrow">${e[0]} · ${e[3]}</p><h3>${e[1]}</h3><p>${e[2]}</p></article>`).join('')}</div><footer class="section-footer"><a href="#top">Back to top ↑</a></footer>`;host.appendChild(section)})();
