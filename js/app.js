@@ -3,6 +3,7 @@
 
   const data = window.SECTION_DATA;
   if (!data) return;
+  window.HistTopics?.prepareSection(data);
 
   const tracker = window.HistProgress || null;
   const remote = window.RemoteTracker || null;
@@ -68,7 +69,13 @@
       ? `<div class="learn-instruction" role="note"><strong>How Checks work:</strong> Select an answer, then choose <strong>Check Answer</strong>. Review the feedback before using the same button area to continue.</div>`
       : "";
 
+    const concepts = screen.concepts || [];
     activityCard.innerHTML = `
+      <div class="topic-search">
+        <label for="topicSearch"><strong>Find a topic, name, event, or answer</strong></label>
+        <input id="topicSearch" type="search" autocomplete="off" placeholder="Try Cowpens, Daniel Morgan, Navigation Acts…">
+        <div id="topicSearchResults" class="topic-search-results" aria-live="polite"></div>
+      </div>
       <h2>${screen.title}</h2>
       <p class="lead">${screen.body}</p>
       ${firstInstruction}
@@ -76,12 +83,18 @@
         <strong>Know This</strong>
         <ul>${screen.know.map(x => `<li>${x}</li>`).join("")}</ul>
       </div>
+      <section class="topic-concepts" aria-labelledby="possibleQuestions">
+        <h3 id="possibleQuestions">Questions you could be asked</h3>
+        <ul>${concepts.map(x => `<li><span>${escapeHtml(x.question)}</span><span class="topic-answer" aria-label="Correct answer">→ <strong>${escapeHtml(x.answer)}</strong></span></li>`).join("")}</ul>
+      </section>
       ${q ? renderQuestion(q, "cfu") : ""}
       <div class="actions">
         <button class="secondary" id="learnBack" ${state.index === 0 ? "disabled" : ""}>← Back</button>
         <button class="primary" id="learnAction" ${learnActionDisabled(q) ? "disabled" : ""}>${learnActionLabel(screen, q)}</button>
       </div>
     `;
+
+    wireTopicSearch();
 
     wireQuestion(q, "cfu");
 
@@ -104,6 +117,27 @@
         return;
       }
       advanceLearn(screen);
+    });
+  }
+
+  function wireTopicSearch() {
+    const input = document.getElementById("topicSearch");
+    const results = document.getElementById("topicSearchResults");
+    if (!input || !results) return;
+    input.addEventListener("input", () => {
+      const query = window.HistTopics?.normalize(input.value) || input.value.toLowerCase().trim();
+      if (!query) { results.innerHTML = ""; return; }
+      const matches = data.learnScreens.map((entry, index) => ({ entry, index }))
+        .filter(x => x.entry.searchText.includes(query));
+      results.innerHTML = matches.length
+        ? matches.map(x => `<button type="button" data-topic-index="${x.index}">${escapeHtml(x.entry.title)} <span>${x.entry.concepts.length} question concept${x.entry.concepts.length === 1 ? "" : "s"}</span></button>`).join("")
+        : `<p>No topic matches “${escapeHtml(input.value)}”.</p>`;
+      results.querySelectorAll("[data-topic-index]").forEach(button => button.onclick = () => {
+        state.index = Number(button.dataset.topicIndex);
+        state.cfuIndex = 0;
+        resetSelection();
+        renderLearn();
+      });
     });
   }
 
@@ -279,7 +313,7 @@
       <div class="${context === "cfu" ? "cfu-box" : ""}">
         ${context === "cfu" ? `<div class="cfu-label">Check Your Understanding</div><div class="question-text">${q.q}</div>` : ""}
         <div class="choices">${choices}</div>
-        ${state.checked ? feedbackHtml(q) : ""}
+        ${state.checked ? feedbackHtml(q, context) : ""}
       </div>`;
   }
 
@@ -309,12 +343,24 @@
     }
   }
 
-  function feedbackHtml(q) {
+  function feedbackHtml(q, context) {
     const correct = state.selected === q.answer;
     return `<div class="feedback ${correct ? "good" : "bad"}" role="status" aria-live="polite">
       <strong>${correct ? "✓ Correct!" : `✗ Not quite. The correct answer is ${String.fromCharCode(65 + q.answer)}.`}</strong>
       ${q.explanation}
-    </div>`;
+    </div>${context === "mc" ? topicReviewHtml(q) : ""}`;
+  }
+
+  function topicReviewHtml(q) {
+    const topic = (data.topicEntries || []).find(entry => entry.topic === q.topic);
+    if (!topic) return "";
+    return `<section class="topic-study-review" aria-labelledby="topicReviewTitle">
+      <p class="eyebrow">RELATED TOPIC REVIEW</p>
+      <h3 id="topicReviewTitle">${escapeHtml(topic.title)}</h3>
+      <p>${escapeHtml(topic.body)}</p>
+      <h4>Questions you could be asked</h4>
+      <ul>${topic.concepts.map(concept => `<li><span>${escapeHtml(concept.question)}</span><span class="topic-answer">→ <strong>${escapeHtml(concept.answer)}</strong></span></li>`).join("")}</ul>
+    </section>`;
   }
 
   function renderMCResults() {

@@ -153,3 +153,15 @@ The sandbox blocks normal URL navigation in Chromium, so browser interaction tes
 - Progress is intentionally local to one browser profile/device. It will not sync to another browser or device and can be lost if site/browser storage is cleared.
 - The current repository contains 266 Unit 1 multiple-choice questions; coverage reads this dynamically rather than hard-coding it.
 - The smart selector is deliberately heuristic and transparent rather than a proprietary mastery/readiness score.
+# 2026-09-17 - Topic-based Learn coverage upgrade
+
+- Added reusable topic entries derived from every actual multiple-choice question bank.
+- Added concise topic explanations and complete “Questions you could be asked” answer lists.
+- Added case-insensitive Learn search across titles, paragraphs, question wording, and correct answers.
+- Added topic study content to the existing post-test Learn review without exposing it during active tests.
+- Added automated 100% question-to-topic coverage and answer-searchability checks.
+- Preserved question banks, distractors, scoring, two-stage review, tracking, smart selection, timeline, accessibility, and GitHub Pages structure.
+# 2026-09-17 - Section MC post-answer topic review correction
+
+- Section Multiple Choice now displays its shared topic paragraph and complete bank-derived “Questions you could be asked” list after Check Answer.
+- Topic study material remains absent before submission and is not added to active Test Mode.
